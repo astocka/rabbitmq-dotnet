@@ -14,18 +14,26 @@ namespace Producer
             {
                 using (var channel = connection.CreateModel())
                 {
-                    channel.QueueDeclare("messages", false, false, false, null);
+                    channel.QueueDeclare("task_queue", true, false, false, null);
 
-                    string message = "It works!";
+                    string message = GetMessage(args);
                     var body = Encoding.UTF8.GetBytes(message);
 
-                    channel.BasicPublish("", "messages", null, body);
-                    Console.WriteLine($" [x] Sent: {message}");
+                    var properties = channel.CreateBasicProperties();
+                    properties.Persistent = true;
+
+                    channel.BasicPublish("", "task_queue", properties, body);
+                    Console.WriteLine($"--> Sent: {message}");
                 }
 
-                Console.WriteLine(" Press [enter] to exit.");
+                Console.WriteLine("# Press [enter] to exit.");
                 Console.ReadLine();
             }
+        }
+
+        private static string GetMessage(string[] args)
+        {
+            return ((args.Length > 0) ? string.Join(" ", args) : "Welcome to the trip, man!");
         }
     }
 }
