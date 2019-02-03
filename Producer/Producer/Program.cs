@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
 using RabbitMQ.Client;
 
 namespace Producer
@@ -8,21 +9,18 @@ namespace Producer
     {
         static void Main(string[] args)
         {
-            var factory = new ConnectionFactory { HostName = "localhost" };
+            var factory = new ConnectionFactory { HostName = "localhost"};
 
             using (var connection = factory.CreateConnection())
             {
                 using (var channel = connection.CreateModel())
                 {
-                    channel.QueueDeclare("task_queue", true, false, false, null);
+                    channel.ExchangeDeclare("logs", "fanout");
 
                     string message = GetMessage(args);
                     var body = Encoding.UTF8.GetBytes(message);
 
-                    var properties = channel.CreateBasicProperties();
-                    properties.Persistent = true;
-
-                    channel.BasicPublish("", "task_queue", properties, body);
+                    channel.BasicPublish("logs", "", null, body);
                     Console.WriteLine($"--> Sent: {message}");
                 }
 

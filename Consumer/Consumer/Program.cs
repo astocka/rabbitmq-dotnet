@@ -15,11 +15,12 @@ namespace Consumer
             using (var connection = factory.CreateConnection())
             using (var channel = connection.CreateModel())
             {
-                channel.QueueDeclare("task_queue", true, false, false, null);
+                channel.ExchangeDeclare("logs", "fanout");
 
-                channel.BasicQos(0, 1, false);
+                var queueName = channel.QueueDeclare().QueueName;
+                channel.QueueBind(queueName, "logs", "");
 
-                Console.WriteLine("# Waiting for messages.");
+                Console.WriteLine("# Waiting for logs.");
 
                 var consumer = new EventingBasicConsumer(channel);
                 consumer.Received += (model, ea) =>
@@ -37,12 +38,9 @@ namespace Consumer
                     Console.WriteLine("# Done.");
                     Console.WriteLine();
                     Console.WriteLine($"--> Received: {message}");
-
-
-                    channel.BasicAck(ea.DeliveryTag, false);
                 };
 
-                channel.BasicConsume("task_queue", false, consumer);
+                channel.BasicConsume(queueName, true, consumer);
 
                 Console.WriteLine();
                 Console.WriteLine("# Press [enter] to exit.");
