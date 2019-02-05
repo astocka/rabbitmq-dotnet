@@ -4,7 +4,7 @@ using System.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace Consumer
+namespace SecondConsumer
 {
     class Program
     {
@@ -17,7 +17,7 @@ namespace Consumer
             {
                 channel.ExchangeDeclare("direct_logs", "direct");
                 var queueName = channel.QueueDeclare().QueueName;
-                channel.QueueBind(queueName, "direct_logs", "temp");
+                channel.QueueBind(queueName, "direct_logs", "second");
                 Console.WriteLine("# Waiting for messages.");
 
                 var consumer = new EventingBasicConsumer(channel);

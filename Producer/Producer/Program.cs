@@ -17,20 +17,18 @@ namespace Producer
                 using (var channel = connection.CreateModel())
                 {
                     channel.ExchangeDeclare("direct_logs", "direct");
-
-                    var severity = (args.Length > 0) ? args[0] : "info";
-
-                    var message = (args.Length < 1)
-                        ? string.Join(" ", args.Skip(1).ToArray())
-                        : "Welcome to the trip, man!";
-
+                    var message = "Welcome to the trip, man!";
                     var body = Encoding.UTF8.GetBytes(message);
 
-                    channel.BasicPublish("direct_logs", severity, null, body);
+                    var secondMessage = "This is another message";
+                    var secondBody = Encoding.UTF8.GetBytes(secondMessage);
 
+                    channel.BasicPublish("direct_logs", "temp", null, body);
                     Console.WriteLine($"--> Sent: {message}");
-                }
 
+                    channel.BasicPublish("direct_logs", "second",null, secondBody);
+                    Console.WriteLine($"--> Sent: {secondMessage}");
+                }
                 Console.WriteLine("# Press [enter] to exit.");
                 Console.ReadLine();
             }
