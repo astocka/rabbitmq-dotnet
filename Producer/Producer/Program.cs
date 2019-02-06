@@ -16,18 +16,15 @@ namespace Producer
             {
                 using (var channel = connection.CreateModel())
                 {
-                    channel.ExchangeDeclare("direct_logs", "direct");
-                    var message = "Welcome to the trip, man!";
+                    channel.ExchangeDeclare("topic_logs", "topic");
+
+                    var routingKey = (args.Length > 0) ? args[0] : "anonymous.info";
+                    var message = (args.Length > 1) ? string.Join(" ", args.Skip(1).ToArray()) : "Welcome to the trip, man!";
                     var body = Encoding.UTF8.GetBytes(message);
 
-                    var secondMessage = "This is another message";
-                    var secondBody = Encoding.UTF8.GetBytes(secondMessage);
+                    channel.BasicPublish("topic_logs", routingKey, null, body);
+                    Console.WriteLine($"--> Sent: {routingKey} : {message}");
 
-                    channel.BasicPublish("direct_logs", "temp", null, body);
-                    Console.WriteLine($"--> Sent: {message}");
-
-                    channel.BasicPublish("direct_logs", "second",null, secondBody);
-                    Console.WriteLine($"--> Sent: {secondMessage}");
                 }
                 Console.WriteLine("# Press [enter] to exit.");
                 Console.ReadLine();

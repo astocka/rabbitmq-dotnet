@@ -15,9 +15,23 @@ namespace Consumer
             using (var connection = factory.CreateConnection())
             using (var channel = connection.CreateModel())
             {
-                channel.ExchangeDeclare("direct_logs", "direct");
+                channel.ExchangeDeclare("topic_logs", "topic");
                 var queueName = channel.QueueDeclare().QueueName;
-                channel.QueueBind(queueName, "direct_logs", "temp");
+
+                if (args.Length < 1)
+                {
+                    Console.Error.WriteLine($"Usage: {Environment.GetCommandLineArgs()[0]} [binding_key]");
+                    Console.WriteLine("Press [enter] to exit.");
+                    Console.ReadLine();
+                    Environment.ExitCode = 1;
+                    return;
+                }
+
+                foreach (var bindingKey in args)
+                {
+                    channel.QueueBind(queueName, "topic_logs", bindingKey);
+                }
+
                 Console.WriteLine("# Waiting for messages.");
 
                 var consumer = new EventingBasicConsumer(channel);
@@ -26,16 +40,6 @@ namespace Consumer
                     var body = ea.Body;
                     var message = Encoding.UTF8.GetString(body);
                     var routingKey = ea.RoutingKey;
-                    Console.Write("--> Please wait. The message is loading");
-                    for (int i = 0; i < 5; i++)
-                    {
-                        Thread.Sleep(2000);
-                        Console.Write(".");
-                    }
-
-                    Console.WriteLine();
-                    Console.WriteLine("# Done.");
-                    Console.WriteLine();
                     Console.WriteLine($"--> Received: {routingKey} : {message}");
                 };
 
